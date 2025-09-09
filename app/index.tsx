@@ -20,6 +20,11 @@ import RNAndroidNotificationListener, {
 // For older versions, use SQLite.openDatabase
 const db = SQLite.openDatabaseSync("spending.db");
 console.log("Hello world! THIS MESSAGE IS BEING PRINTED!");
+const ALLOWED_APPS = [
+    "com.discoverfinancial.mobile",
+    "com.mfoundry.mb.android.mb_731",
+    "com.android.chrome",
+];
 // Move permission status check and request into the component
 
 // RNAndroidNotificationListener.requestPermission(); // Optionally move this into useEffect as well
@@ -30,7 +35,6 @@ const headlessNotificationListener = async ({
     notification: any;
 }) => {
     if (notification) {
-        // Here you can process the notification data
         let notificationObj;
         try {
             notificationObj =
@@ -41,10 +45,25 @@ const headlessNotificationListener = async ({
             console.log("Failed to parse notification:", notification);
             return;
         }
-        console.log("Notification text:", notificationObj.text);
+        console.log(
+            "Notification text:",
+            notificationObj.text,
+            notificationObj.app
+        );
 
-        // Example: parse the text and save to your database
-        // await Database.addSpending(amount, details, new Date().toISOString());
+        // Test parseNotification
+        const parsedAmount = parseNotification(notificationObj.text);
+        if (
+            parsedAmount !== null &&
+            ALLOWED_APPS.includes(notificationObj.app)
+        ) {
+            console.log("Parsed amount from notification:", parsedAmount);
+            await Database.addSpending(
+                parsedAmount,
+                notificationObj.text,
+                new Date().toISOString()
+            );
+        }
     }
 };
 
