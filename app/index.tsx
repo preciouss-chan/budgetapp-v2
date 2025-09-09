@@ -86,7 +86,6 @@ AppRegistry.registerHeadlessTask(
     () => headlessNotificationListener
 );
 
-
 // Data validation utilities
 const DataValidator = {
     validateAmount: (
@@ -253,7 +252,7 @@ export default function MonthlySpendingScreen() {
                             // Don't throw error - this is not critical for app functionality
                         }
                     };
-                    
+
                     // Run permission check but don't wait for it to complete
                     checkPermission().catch((error) => {
                         console.log("Permission check failed:", error);
@@ -273,11 +272,11 @@ export default function MonthlySpendingScreen() {
                 performanceMonitor.endTiming("app_initialization");
                 // Ensure loading state is set to false even if initialization fails
                 setLoading(false);
-                
+
                 // Set empty data to allow app to function
                 setSpendingData([]);
                 setFilteredData([]);
-                
+
                 if (
                     error instanceof Error &&
                     error.message === "Initialization timeout"
@@ -289,7 +288,10 @@ export default function MonthlySpendingScreen() {
                 } else {
                     console.log("Initialization error details:", error);
                     // Show a more helpful error message
-                    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+                    const errorMessage =
+                        error instanceof Error
+                            ? error.message
+                            : "Unknown error";
                     Alert.alert(
                         "Initialization Warning",
                         `Some features may not work properly. Error: ${errorMessage}. You can still use the app to add transactions.`
@@ -321,12 +323,14 @@ export default function MonthlySpendingScreen() {
             setSpendingData([]);
             setFilteredData([]);
             setLoading(false);
-            
+
             // Only throw error if it's a critical database issue
             if (error instanceof Error && error.message.includes("database")) {
                 throw error;
             } else {
-                console.log("Non-critical database error, continuing with empty data");
+                console.log(
+                    "Non-critical database error, continuing with empty data"
+                );
             }
         }
     };
@@ -430,7 +434,7 @@ export default function MonthlySpendingScreen() {
             console.log("Attempting to add spending:", {
                 amount: amountValidation.value,
                 details: detailsValidation.value,
-                date: dateValidation.value
+                date: dateValidation.value,
             });
 
             await Database.addSpending(
@@ -451,9 +455,12 @@ export default function MonthlySpendingScreen() {
             await loadSpendingData(); // Refresh the data
         } catch (error) {
             console.log("Error adding spending:", error);
-            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Unknown error occurred";
             Alert.alert(
-                "Error", 
+                "Error",
                 `Failed to add spending: ${errorMessage}. Please try again.`
             );
         }
@@ -562,10 +569,10 @@ export default function MonthlySpendingScreen() {
             <View
                 style={[
                     styles.container,
-                    { 
-                        justifyContent: "center", 
+                    {
+                        justifyContent: "center",
                         alignItems: "center",
-                        backgroundColor: theme.colors.background
+                        backgroundColor: theme.colors.background,
                     },
                 ]}
             >
@@ -575,13 +582,30 @@ export default function MonthlySpendingScreen() {
     }
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View
+            style={[
+                styles.container,
+                { backgroundColor: theme.colors.background },
+            ]}
+        >
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.headerContent}>
                     <View>
-                        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Monthly Spending</Text>
-                        <Text style={[styles.headerSubtitle, { color: theme.colors.textSecondary }]}>
+                        <Text
+                            style={[
+                                styles.headerTitle,
+                                { color: theme.colors.text },
+                            ]}
+                        >
+                            Monthly Spending
+                        </Text>
+                        <Text
+                            style={[
+                                styles.headerSubtitle,
+                                { color: theme.colors.textSecondary },
+                            ]}
+                        >
                             {new Date().toLocaleDateString("en-US", {
                                 month: "long",
                                 year: "numeric",
@@ -589,7 +613,10 @@ export default function MonthlySpendingScreen() {
                         </Text>
                     </View>
                     <TouchableOpacity
-                        style={[styles.settingsButton, { backgroundColor: theme.colors.surface }]}
+                        style={[
+                            styles.settingsButton,
+                            { backgroundColor: theme.colors.surface },
+                        ]}
                         onPress={() => router.push("/settings" as any)}
                     >
                         <Text style={styles.settingsButtonText}>⚙️</Text>
@@ -600,11 +627,14 @@ export default function MonthlySpendingScreen() {
             {/* Search and Filter Controls */}
             <View style={styles.controlsContainer}>
                 <TextInput
-                    style={[styles.searchInput, { 
-                        backgroundColor: theme.colors.surface,
-                        borderColor: theme.colors.border,
-                        color: theme.colors.text
-                    }]}
+                    style={[
+                        styles.searchInput,
+                        {
+                            backgroundColor: theme.colors.surface,
+                            borderColor: theme.colors.border,
+                            color: theme.colors.text,
+                        },
+                    ]}
                     placeholder="Search spending..."
                     placeholderTextColor={theme.colors.textSecondary}
                     value={searchQuery}
@@ -616,7 +646,9 @@ export default function MonthlySpendingScreen() {
                         style={[
                             styles.sortButton,
                             { backgroundColor: theme.colors.surface },
-                            sortBy === "date" && { backgroundColor: theme.colors.primary },
+                            sortBy === "date" && {
+                                backgroundColor: theme.colors.primary,
+                            },
                         ]}
                         onPress={() => setSortBy("date")}
                     >
@@ -635,7 +667,9 @@ export default function MonthlySpendingScreen() {
                         style={[
                             styles.sortButton,
                             { backgroundColor: theme.colors.surface },
-                            sortBy === "amount" && { backgroundColor: theme.colors.primary },
+                            sortBy === "amount" && {
+                                backgroundColor: theme.colors.primary,
+                            },
                         ]}
                         onPress={() => setSortBy("amount")}
                     >
@@ -651,7 +685,10 @@ export default function MonthlySpendingScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[styles.sortOrderButton, { backgroundColor: theme.colors.secondary }]}
+                        style={[
+                            styles.sortOrderButton,
+                            { backgroundColor: theme.colors.secondary },
+                        ]}
                         onPress={() =>
                             setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                         }
@@ -665,7 +702,10 @@ export default function MonthlySpendingScreen() {
 
             {/* Add Spending Button */}
             <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
+                style={[
+                    styles.addButton,
+                    { backgroundColor: theme.colors.primary },
+                ]}
                 onPress={() => setModalVisible(true)}
             >
                 <Text style={styles.addButtonText}>+ Add Spending</Text>
@@ -673,7 +713,10 @@ export default function MonthlySpendingScreen() {
 
             {/* Table Container */}
             <ScrollView
-                style={[styles.tableContainer, { backgroundColor: theme.colors.surface }]}
+                style={[
+                    styles.tableContainer,
+                    { backgroundColor: theme.colors.surface },
+                ]}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -683,7 +726,12 @@ export default function MonthlySpendingScreen() {
                 }
             >
                 {/* Table Header */}
-                <View style={[styles.tableHeader, { backgroundColor: theme.colors.primary }]}>
+                <View
+                    style={[
+                        styles.tableHeader,
+                        { backgroundColor: theme.colors.primary },
+                    ]}
+                >
                     <Text style={[styles.headerCell, styles.amountColumn]}>
                         Amount
                     </Text>
@@ -698,12 +746,22 @@ export default function MonthlySpendingScreen() {
                 {/* Table Rows */}
                 {filteredData.length === 0 ? (
                     <View style={styles.emptyContainer}>
-                        <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                        <Text
+                            style={[
+                                styles.emptyText,
+                                { color: theme.colors.textSecondary },
+                            ]}
+                        >
                             {spendingData.length === 0
                                 ? "No spending records found"
                                 : "No results found for your search"}
                         </Text>
-                        <Text style={[styles.emptySubtext, { color: theme.colors.textSecondary }]}>
+                        <Text
+                            style={[
+                                styles.emptySubtext,
+                                { color: theme.colors.textSecondary },
+                            ]}
+                        >
                             {spendingData.length === 0
                                 ? 'Tap "Add Spending" to get started'
                                 : "Try adjusting your search or filters"}
@@ -718,7 +776,10 @@ export default function MonthlySpendingScreen() {
                                 { borderBottomColor: theme.colors.border },
                                 index % 2 === 0
                                     ? { backgroundColor: theme.colors.surface }
-                                    : { backgroundColor: theme.colors.background },
+                                    : {
+                                          backgroundColor:
+                                              theme.colors.background,
+                                      },
                             ]}
                         >
                             <Text
@@ -732,17 +793,33 @@ export default function MonthlySpendingScreen() {
                                 {formatAmount(item.amount)}
                             </Text>
                             <Text
-                                style={[styles.cell, styles.detailsColumn, { color: theme.colors.text }]}
+                                style={[
+                                    styles.cell,
+                                    styles.detailsColumn,
+                                    { color: theme.colors.text },
+                                ]}
                                 numberOfLines={2}
                             >
                                 {item.details}
                             </Text>
-                            <Text style={[styles.cell, styles.dateColumn, { color: theme.colors.text }]}>
+                            <Text
+                                style={[
+                                    styles.cell,
+                                    styles.dateColumn,
+                                    { color: theme.colors.text },
+                                ]}
+                            >
                                 {formatDate(item.date)}
                             </Text>
                             <View style={styles.actionColumn}>
                                 <TouchableOpacity
-                                    style={[styles.editButton, { backgroundColor: theme.colors.warning }]}
+                                    style={[
+                                        styles.editButton,
+                                        {
+                                            backgroundColor:
+                                                theme.colors.warning,
+                                        },
+                                    ]}
                                     onPress={() => editSpending(item)}
                                 >
                                     <Text style={styles.editButtonText}>
@@ -750,7 +827,10 @@ export default function MonthlySpendingScreen() {
                                     </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    style={[styles.deleteButton, { backgroundColor: theme.colors.error }]}
+                                    style={[
+                                        styles.deleteButton,
+                                        { backgroundColor: theme.colors.error },
+                                    ]}
                                     onPress={() => deleteSpending(item.id)}
                                 >
                                     <Text style={styles.deleteButtonText}>
@@ -770,13 +850,23 @@ export default function MonthlySpendingScreen() {
                     {formatAmount(calculateTotal())}
                 </Text>
                 {searchQuery.trim() && (
-                    <Text style={[styles.originalTotalText, { color: theme.colors.textSecondary }]}>
+                    <Text
+                        style={[
+                            styles.originalTotalText,
+                            { color: theme.colors.textSecondary },
+                        ]}
+                    >
                         Total Spent: {formatAmount(calculateOriginalTotal())}
                     </Text>
                 )}
 
                 <Link href="/summary" style={styles.linkContainer}>
-                    <View style={[styles.summaryButton, { backgroundColor: theme.colors.success }]}>
+                    <View
+                        style={[
+                            styles.summaryButton,
+                            { backgroundColor: theme.colors.success },
+                        ]}
+                    >
                         <Text style={styles.buttonText}>
                             View Spending Summary
                         </Text>
@@ -792,15 +882,30 @@ export default function MonthlySpendingScreen() {
                 onRequestClose={() => setModalVisible(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>
-                        <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Add New Spending</Text>
+                    <View
+                        style={[
+                            styles.modalContent,
+                            { backgroundColor: theme.colors.surface },
+                        ]}
+                    >
+                        <Text
+                            style={[
+                                styles.modalTitle,
+                                { color: theme.colors.text },
+                            ]}
+                        >
+                            Add New Spending
+                        </Text>
 
                         <TextInput
-                            style={[styles.input, { 
-                                borderColor: theme.colors.border,
-                                backgroundColor: theme.colors.background,
-                                color: theme.colors.text
-                            }]}
+                            style={[
+                                styles.input,
+                                {
+                                    borderColor: theme.colors.border,
+                                    backgroundColor: theme.colors.background,
+                                    color: theme.colors.text,
+                                },
+                            ]}
                             placeholder="Amount (e.g., 25.99)"
                             placeholderTextColor={theme.colors.textSecondary}
                             value={newSpending.amount}
@@ -811,11 +916,14 @@ export default function MonthlySpendingScreen() {
                         />
 
                         <TextInput
-                            style={[styles.input, { 
-                                borderColor: theme.colors.border,
-                                backgroundColor: theme.colors.background,
-                                color: theme.colors.text
-                            }]}
+                            style={[
+                                styles.input,
+                                {
+                                    borderColor: theme.colors.border,
+                                    backgroundColor: theme.colors.background,
+                                    color: theme.colors.text,
+                                },
+                            ]}
                             placeholder="Details (e.g., Coffee at Starbucks)"
                             placeholderTextColor={theme.colors.textSecondary}
                             value={newSpending.details}
@@ -829,11 +937,14 @@ export default function MonthlySpendingScreen() {
                         />
 
                         <TextInput
-                            style={[styles.input, { 
-                                borderColor: theme.colors.border,
-                                backgroundColor: theme.colors.background,
-                                color: theme.colors.text
-                            }]}
+                            style={[
+                                styles.input,
+                                {
+                                    borderColor: theme.colors.border,
+                                    backgroundColor: theme.colors.background,
+                                    color: theme.colors.text,
+                                },
+                            ]}
                             placeholder="Date (YYYY-MM-DD)"
                             placeholderTextColor={theme.colors.textSecondary}
                             value={newSpending.date}
@@ -876,15 +987,30 @@ export default function MonthlySpendingScreen() {
                 onRequestClose={() => setEditModalVisible(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>
-                        <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Edit Spending</Text>
+                    <View
+                        style={[
+                            styles.modalContent,
+                            { backgroundColor: theme.colors.surface },
+                        ]}
+                    >
+                        <Text
+                            style={[
+                                styles.modalTitle,
+                                { color: theme.colors.text },
+                            ]}
+                        >
+                            Edit Spending
+                        </Text>
 
                         <TextInput
-                            style={[styles.input, { 
-                                borderColor: theme.colors.border,
-                                backgroundColor: theme.colors.background,
-                                color: theme.colors.text
-                            }]}
+                            style={[
+                                styles.input,
+                                {
+                                    borderColor: theme.colors.border,
+                                    backgroundColor: theme.colors.background,
+                                    color: theme.colors.text,
+                                },
+                            ]}
                             placeholder="Amount (e.g., 25.99)"
                             placeholderTextColor={theme.colors.textSecondary}
                             value={newSpending.amount}
@@ -895,11 +1021,14 @@ export default function MonthlySpendingScreen() {
                         />
 
                         <TextInput
-                            style={[styles.input, { 
-                                borderColor: theme.colors.border,
-                                backgroundColor: theme.colors.background,
-                                color: theme.colors.text
-                            }]}
+                            style={[
+                                styles.input,
+                                {
+                                    borderColor: theme.colors.border,
+                                    backgroundColor: theme.colors.background,
+                                    color: theme.colors.text,
+                                },
+                            ]}
                             placeholder="Details (e.g., Coffee at Starbucks)"
                             placeholderTextColor={theme.colors.textSecondary}
                             value={newSpending.details}
@@ -913,11 +1042,14 @@ export default function MonthlySpendingScreen() {
                         />
 
                         <TextInput
-                            style={[styles.input, { 
-                                borderColor: theme.colors.border,
-                                backgroundColor: theme.colors.background,
-                                color: theme.colors.text
-                            }]}
+                            style={[
+                                styles.input,
+                                {
+                                    borderColor: theme.colors.border,
+                                    backgroundColor: theme.colors.background,
+                                    color: theme.colors.text,
+                                },
+                            ]}
                             placeholder="Date (YYYY-MM-DD)"
                             placeholderTextColor={theme.colors.textSecondary}
                             value={newSpending.date}
