@@ -45,6 +45,12 @@ export const initializeDatabase = async (): Promise<void> => {
     }
 };
 
+// Export the getDatabase function for use in backup operations
+export const getDatabase = async () => {
+    await initializeDatabase();
+    return createDatabase();
+};
+
 export const Database = {
     init: initializeDatabase,
 

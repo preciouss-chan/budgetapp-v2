@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
-import { getDatabase, initializeDatabase } from './DatabaseManager';
+import { initializeDatabase } from './DatabaseManager';
 
 interface BackupData {
   version: string;
@@ -62,6 +62,7 @@ class DatabaseBackupManager {
       try {
         // Method 1: Use shared database manager
         await initializeDatabase();
+        const { getDatabase } = await import('./DatabaseManager');
         const db = await getDatabase();
         spending = await db.getAllAsync('SELECT * FROM spending ORDER BY date DESC');
         console.log(`Method 1 successful: Retrieved ${spending.length} spending records`);
@@ -159,42 +160,108 @@ class DatabaseBackupManager {
         throw new Error('Backup file is corrupted or invalid');
       }
 
-      // Start transaction
+      console.log(`Backup data verified: ${backupData.spending?.length || 0} records to restore`);
+
+      // Initialize database and get connection
+      console.log('Initializing database...');
       await initializeDatabase();
-      const db = await getDatabase();
-      await db.execAsync('BEGIN TRANSACTION');
+      console.log('Database initialization completed');
+      
+      let db;
+      try {
+        // Try the shared database manager first
+        const { getDatabase } = await import('./DatabaseManager');
+        db = await getDatabase();
+        console.log('Using shared database manager for restore');
+      } catch (error) {
+        console.log('Shared database manager failed, trying direct connection:', error);
+        // Fallback to direct database connection
+        const SQLite = await import('expo-sqlite');
+        db = SQLite.default.openDatabaseSync('spending.db');
+        console.log('Using direct database connection for restore');
+      }
+      
+      if (!db) {
+        throw new Error('Failed to establish database connection');
+      }
+      
+      console.log('Database connection established for restore');
 
       try {
+        // Test database connection first
+        console.log('Testing database connection...');
+        await db.getAllAsync('SELECT 1');
+        console.log('Database connection test successful');
+
         // Clear existing data
+        console.log('Clearing existing spending data...');
         await db.execAsync('DELETE FROM spending');
+        console.log('Existing data cleared');
 
         // Restore spending data
         if (backupData.spending && backupData.spending.length > 0) {
-          for (const record of backupData.spending) {
-            await db.runAsync(
-              'INSERT INTO spending (id, amount, details, date) VALUES (?, ?, ?, ?)',
-              [record.id, record.amount, record.details, record.date]
-            );
+          console.log(`Restoring ${backupData.spending.length} spending records...`);
+          
+          for (let i = 0; i < backupData.spending.length; i++) {
+            const record = backupData.spending[i];
+            try {
+              // Validate record data before insertion
+              if (!record.id || record.amount === undefined || !record.details || !record.date) {
+                console.log(`Skipping invalid record ${i}:`, record);
+                continue;
+              }
+
+              await db.runAsync(
+                'INSERT INTO spending (id, amount, details, date) VALUES (?, ?, ?, ?)',
+                [record.id, record.amount, record.details, record.date]
+              );
+              
+              if (i % 10 === 0) {
+                console.log(`Restored ${i + 1}/${backupData.spending.length} records`);
+              }
+            } catch (recordError) {
+              console.log(`Error inserting record ${i}:`, recordError);
+              console.log(`Record data:`, record);
+              // Continue with other records even if one fails
+            }
           }
+          
+          console.log('All spending records processed');
+        } else {
+          console.log('No spending records to restore');
         }
 
         // Restore settings if they exist
         if (backupData.settings) {
+          console.log('Restoring settings...');
           await AsyncStorage.setItem('app_settings', JSON.stringify(backupData.settings));
+          console.log('Settings restored');
         }
 
-        // Commit transaction
-        await db.execAsync('COMMIT');
-
+        // Verify the restore was successful
+        console.log('Verifying restore...');
+        const restoredRecords = await db.getAllAsync('SELECT COUNT(*) as count FROM spending');
+        const recordCount = (restoredRecords[0] as any)?.count || 0;
+        console.log(`Verification: ${recordCount} records now in database`);
+        
+        if (backupData.spending && backupData.spending.length > 0 && recordCount === 0) {
+          throw new Error('Restore failed: No records were restored to the database');
+        }
+        
         console.log(`Restore completed successfully from ${backupData.timestamp}`);
       } catch (error) {
-        // Rollback on error
-        await db.execAsync('ROLLBACK');
+        console.log('Error during restore operation:', error);
+        console.log('Error details:', {
+          name: error instanceof Error ? error.name : 'Unknown',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : 'No stack trace'
+        });
         throw error;
       }
     } catch (error) {
       console.log('Error restoring backup:', error);
-      throw new Error('Failed to restore backup');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(`Failed to restore backup: ${errorMessage}`);
     }
   }
 
