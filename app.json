@@ -51,6 +51,17 @@
             ]
           }
         }
+      ],
+      [
+        "expo-background-fetch",
+        {
+          "android": {
+            "enableBackgroundFetch": true
+          },
+          "ios": {
+            "enableBackgroundFetch": true
+          }
+        }
       ]
     ],
     "experiments": {
