@@ -20,6 +20,7 @@ import { performanceMonitor } from "../utils/PerformanceMonitor";
 
 // Import shared database manager
 import { Database } from "../utils/DatabaseManager";
+
 const ALLOWED_APPS = [
     "com.discoverfinancial.mobile",
     "com.mfoundry.mb.android.mb_731",
@@ -76,6 +77,7 @@ const headlessNotificationListener = async ({
         }
     } catch (error) {
         console.log("Error in headless notification listener:", error);
+    
     }
 };
 
