@@ -1,4 +1,5 @@
 import * as DocumentPicker from "expo-document-picker";
+import { router } from "expo-router";
 import * as Sharing from "expo-sharing";
 import React, { useEffect, useState } from "react";
 import {
@@ -257,12 +258,25 @@ export default function BackupScreen() {
                             await restoreFromBackup(backup.id);
                             Alert.alert(
                                 "Success",
-                                "Backup restored successfully!"
+                                "Backup restored successfully! The app will refresh to show the restored data."
                             );
                             await loadBackups();
+                            // Force a refresh of the main screen data
+                            // This will trigger a re-render of any components that depend on spending data
+                            setTimeout(() => {
+                                // Navigate back to main screen to refresh data
+                                router.replace("/");
+                            }, 1000);
                         } catch (error) {
                             console.log("Error restoring backup:", error);
-                            Alert.alert("Error", "Failed to restore backup");
+                            const errorMessage =
+                                error instanceof Error
+                                    ? error.message
+                                    : "Unknown error occurred";
+                            Alert.alert(
+                                "Error",
+                                `Failed to restore backup: ${errorMessage}`
+                            );
                         } finally {
                             setLoading(false);
                         }

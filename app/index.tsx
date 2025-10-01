@@ -61,10 +61,20 @@ const headlessNotificationListener = async ({
                 ALLOWED_APPS.includes(notificationObj.app)
             ) {
                 console.log("Parsed amount from notification:", parsedAmount);
+
+                // Extract description based on app
+                // For Discover notifications, extract only the capitalized merchant name
+                // For other apps, use the full notification text
+                let description = notificationObj.text;
+                if (notificationObj.app === "com.discoverfinancial.mobile") {
+                    description = extractDiscoverMerchant(notificationObj.text);
+                    console.log("Extracted Discover merchant:", description);
+                }
+
                 try {
                     await Database.addSpending(
                         parsedAmount,
-                        notificationObj.text,
+                        description,
                         new Date().toISOString()
                     );
                 } catch (dbError) {
@@ -77,7 +87,6 @@ const headlessNotificationListener = async ({
         }
     } catch (error) {
         console.log("Error in headless notification listener:", error);
-    
     }
 };
 
@@ -186,6 +195,38 @@ const parseNotification = (text: string): number | null => {
         return parseFloat(match[0]);
     }
     return null;
+};
+
+const extractDiscoverMerchant = (text: string): string => {
+    // Look for capitalized merchant names in Discover notifications
+    // Pattern: "A transaction of $X.XX has been initiated at MERCHANT NAME on date"
+    // We want to extract the capitalized part (MERCHANT NAME)
+
+    console.log("Extracting merchant from Discover notification:", text);
+
+    // First, try to find the pattern with "at" followed by capitalized text
+    const atPattern = /at\s+([A-Z][A-Z\s]+[A-Z])\s+on/i;
+    const atMatch = text.match(atPattern);
+    if (atMatch && atMatch[1]) {
+        const merchant = atMatch[1].trim();
+        console.log("Found merchant with 'at' pattern:", merchant);
+        return merchant;
+    }
+
+    // Fallback: look for any sequence of 2+ consecutive capitalized words
+    const capitalizedPattern = /\b([A-Z][A-Z\s]{2,}[A-Z])\b/;
+    const capitalizedMatch = text.match(capitalizedPattern);
+    if (capitalizedMatch && capitalizedMatch[1]) {
+        const merchant = capitalizedMatch[1].trim();
+        console.log("Found merchant with capitalized pattern:", merchant);
+        return merchant;
+    }
+
+    // If no capitalized merchant found, return the original text
+    console.log(
+        "No capitalized merchant found in Discover notification, using original text"
+    );
+    return text;
 };
 
 export default function MonthlySpendingScreen() {
